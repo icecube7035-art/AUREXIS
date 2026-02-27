@@ -28,9 +28,11 @@ export default function Intro({ onComplete }: { onComplete: () => void }) {
       <AnimatePresence mode="wait">
         {step === 0 && (
           <motion.div key="s0" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} transition={{ duration: 1 }} className="absolute inset-0 flex flex-col items-center justify-center">
-            <div className="relative w-40 h-40 md:w-56 md:h-56 mb-8 [&.fallback-logo-active>div.hidden]:flex"><div className="absolute inset-0 bg-[#C5A059]/10 blur-3xl rounded-full" /><Logo /></div>
-            <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.8 }} className="text-2xl md:text-3xl font-mono text-[#C5A059] tracking-[0.3em] uppercase mb-4">Aurexis</motion.h1>
-            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1, duration: 0.8 }} className="text-xs md:text-sm text-white/50 tracking-[0.2em] uppercase font-light text-center px-4">Powering Intelligent Software Systems</motion.p>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 md:w-96 md:h-96 z-0 pointer-events-none [&.fallback-logo-active>div.hidden]:flex"><div className="absolute inset-0 bg-[#C5A059]/10 blur-3xl rounded-full" /><Logo /></div>
+            <div className="relative z-30 flex flex-col items-center justify-center">
+              <motion.h1 initial={{ opacity: 0, scale: 0.9, letterSpacing: "0em" }} animate={{ opacity: 1, scale: 1, letterSpacing: "0.2em" }} transition={{ delay: 0.5, duration: 1.5, ease: "easeOut" }} className="text-5xl md:text-7xl lg:text-9xl font-mono text-[#C5A059] uppercase mb-4 ml-[0.2em]"><span className="text-glow-pulse inline-block">Aurexis</span></motion.h1>
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1, duration: 0.8 }} className="text-xs md:text-sm text-white/50 tracking-[0.2em] uppercase font-light text-center px-4">Powering Intelligent Software Systems</motion.p>
+            </div>
           </motion.div>
         )}
         {step === 1 && (

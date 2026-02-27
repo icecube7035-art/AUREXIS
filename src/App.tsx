@@ -85,15 +85,15 @@ export default function App() {
 
           <main className="w-full max-w-7xl mx-auto px-6 md:px-12 lg:px-24 relative z-10">
             {/* Hero Section */}
-            <section className="min-h-[70vh] flex flex-col items-center justify-center text-center py-20">
+            <section className="min-h-[70vh] flex flex-col items-center justify-center text-center py-20 relative">
               <motion.div
                 initial={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }}
                 animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
                 transition={{ duration: 1.2, ease: "easeOut" }}
-                className="mb-12 relative"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none"
               >
                 {/* Logo Placeholder - User should replace src with actual uploaded logo path */}
-                <div className="relative w-48 h-48 md:w-64 md:h-64 mx-auto flex items-center justify-center">
+                <div className="relative w-64 h-64 md:w-96 md:h-96 mx-auto flex items-center justify-center">
                   <div className="absolute inset-0 bg-[#C5A059]/10 blur-3xl rounded-full" />
                   <img 
                     src="/logo.png" 
@@ -106,31 +106,33 @@ export default function App() {
                     }}
                   />
                   {/* Fallback visual if image fails to load */}
-                  <div className="hidden fallback-logo w-32 h-32 rounded-full border border-[#C5A059]/30 flex items-center justify-center relative z-10">
-                     <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#C5A059] to-[#8A6D23] shadow-[0_0_30px_rgba(197,160,89,0.4)]" />
+                  <div className="hidden fallback-logo w-48 h-48 rounded-full border border-[#C5A059]/30 flex items-center justify-center relative z-10">
+                     <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#C5A059] to-[#8A6D23] shadow-[0_0_30px_rgba(197,160,89,0.4)]" />
                      <div className="absolute inset-[-20%] border border-[#C5A059]/20 rounded-[40%] animate-[spin_10s_linear_infinite]" />
                      <div className="absolute inset-[-40%] border border-[#C5A059]/10 rounded-[35%] animate-[spin_15s_linear_infinite_reverse]" />
                   </div>
                 </div>
               </motion.div>
               
-              <motion.h1 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: "easeOut", delay: 0.4 }}
-                className="text-sm md:text-base font-mono text-[#C5A059] tracking-[0.3em] uppercase mb-6"
-              >
-                Aurexis
-              </motion.h1>
+              <div className="relative z-30 flex flex-col items-center justify-center mt-8">
+                <motion.h1 
+                  initial={{ opacity: 0, scale: 0.9, letterSpacing: "0em" }}
+                  animate={{ opacity: 1, scale: 1, letterSpacing: "0.2em" }}
+                  transition={{ duration: 1.5, ease: "easeOut", delay: 0.4 }}
+                  className="text-5xl md:text-7xl lg:text-9xl font-mono text-[#C5A059] uppercase mb-6 ml-[0.2em]"
+                >
+                  <span className="text-glow-pulse inline-block">Aurexis</span>
+                </motion.h1>
 
-              <motion.p 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: "easeOut", delay: 0.6 }}
-                className="text-xl md:text-3xl font-light leading-relaxed tracking-wide text-white/80 max-w-2xl"
-              >
-                A systems company building focused digital products.
-              </motion.p>
+                <motion.p 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, ease: "easeOut", delay: 0.6 }}
+                  className="text-xl md:text-3xl font-light leading-relaxed tracking-wide text-white/80 max-w-2xl"
+                >
+                  A systems company building focused digital products.
+                </motion.p>
+              </div>
             </section>
 
             {/* Products Section */}
