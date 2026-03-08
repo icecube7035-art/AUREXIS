@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { ArrowUpRight, Layers, Activity, Globe, Shield, Server, Compass } from "lucide-react";
+import { ArrowUpRight, Layers, Activity, Globe, Shield, Server, Compass, ShoppingBag } from "lucide-react";
 
 const products = [
   {
@@ -20,6 +20,12 @@ const products = [
     url: "https://adsaico.netlify.app",
     description: "A digital solutions and advertising platform supporting modern brands and creators.",
     icon: Globe,
+  },
+  {
+    name: "Universo Store",
+    url: "https://payhip.com/UNIVERSOSTORE",
+    description: "A digital storefront providing premium tools, presets, and assets for creators and video editors.",
+    icon: ShoppingBag,
   },
 ];
 
@@ -174,7 +180,7 @@ export default function App() {
             <div className="h-[1px] flex-grow bg-gradient-to-r from-[#C5A059]/20 to-transparent" />
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {products.map((product, index) => {
               const Icon = product.icon;
               return (
