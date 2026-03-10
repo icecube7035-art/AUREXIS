@@ -74,13 +74,53 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-[#E5E5E5] selection:bg-[#C5A059]/30 selection:text-white font-sans overflow-x-hidden">
-      {/* Ambient Gold Glow - fades in after intro */}
+      {/* Animated Background Gradients - fades in after intro */}
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: introComplete ? 1 : 0 }}
-        transition={{ duration: 1.5, ease: "easeInOut" }}
-        className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#C5A059]/5 blur-[120px] rounded-full pointer-events-none" 
-      />
+        transition={{ duration: 2, ease: "easeInOut" }}
+        className="fixed inset-0 overflow-hidden pointer-events-none z-0"
+      >
+        <motion.div
+          animate={{
+            x: [0, 100, -50, 0],
+            y: [0, -100, 50, 0],
+            scale: [1, 1.2, 0.8, 1],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+          className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-[#C5A059]/[0.04] blur-[120px]"
+        />
+        <motion.div
+          animate={{
+            x: [0, -150, 100, 0],
+            y: [0, 100, -150, 0],
+            scale: [1, 0.8, 1.2, 1],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+          className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-[#8A6D23]/[0.03] blur-[150px]"
+        />
+        <motion.div
+          animate={{
+            x: [0, 50, -100, 0],
+            y: [0, 150, -50, 0],
+            scale: [1, 1.5, 0.9, 1],
+          }}
+          transition={{
+            duration: 30,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+          className="absolute top-[30%] left-[40%] w-[40vw] h-[40vw] rounded-full bg-[#C5A059]/[0.02] blur-[100px]"
+        />
+      </motion.div>
 
       {/* Navigation - fades in after intro */}
       <motion.nav 
@@ -394,7 +434,7 @@ export default function App() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.5, delay: (index % 10) * 0.05 }}
-                className="break-inside-avoid inline-block w-full bg-white/[0.02] border border-white/[0.05] p-8 rounded-2xl hover:bg-white/[0.04] hover:border-[#C5A059]/30 transition-all duration-500"
+                className="break-inside-avoid inline-block w-full bg-white/[0.02] border border-white/[0.05] p-8 rounded-2xl hover:bg-white/[0.04] hover:border-[#C5A059]/30 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-[0_10px_40px_rgba(197,160,89,0.12)] transition-all duration-500"
               >
                 <div className="flex gap-1 mb-4">
                   {[...Array(5)].map((_, i) => (

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Globe from 'react-globe.gl';
 import { reviews } from '../data/reviews';
 
@@ -45,6 +46,16 @@ export default function InteractiveGlobe() {
   const globeRef = useRef<any>();
   const [dimensions, setDimensions] = useState({ width: 800, height: 800 });
   const containerRef = useRef<HTMLDivElement>(null);
+  const [hoveredPoint, setHoveredPoint] = useState<any>(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -65,11 +76,11 @@ export default function InteractiveGlobe() {
   useEffect(() => {
     if (globeRef.current) {
       globeRef.current.controls().autoRotate = true;
-      globeRef.current.controls().autoRotateSpeed = 0.5;
+      globeRef.current.controls().autoRotateSpeed = hoveredPoint ? 0.05 : 0.5;
       globeRef.current.controls().enableZoom = false;
       globeRef.current.pointOfView({ altitude: 2.5 });
     }
-  }, []);
+  }, [hoveredPoint]);
 
   const gData = reviews.map(review => {
     const coords = locationCoordinates[review.location] || { lat: (Math.random() - 0.5) * 180, lng: (Math.random() - 0.5) * 360 };
@@ -83,30 +94,45 @@ export default function InteractiveGlobe() {
   });
 
   return (
-    <div ref={containerRef} className="absolute inset-0 flex items-center justify-center opacity-40 pointer-events-auto z-0">
-      <Globe
-        ref={globeRef}
-        width={dimensions.width}
-        height={dimensions.height}
-        globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
-        bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
-        backgroundColor="rgba(0,0,0,0)"
-        pointsData={gData}
-        pointAltitude="size"
-        pointColor="color"
-        pointRadius={0.8}
-        pointsMerge={false}
-        pointLabel={(d: any) => {
-          const stars = "★".repeat(d.review.rating) + "☆".repeat(5 - d.review.rating);
-          return `
-            <div style="background: rgba(10, 10, 10, 0.9); border: 1px solid rgba(197, 160, 89, 0.3); padding: 12px; border-radius: 8px; max-width: 250px; font-family: sans-serif;">
-              <div style="color: #C5A059; font-size: 14px; margin-bottom: 4px;">${stars}</div>
-              <div style="color: white; font-size: 12px; margin-bottom: 8px; font-weight: bold;">${d.review.name} - ${d.review.location}</div>
-              <div style="color: rgba(255,255,255,0.7); font-size: 11px; line-height: 1.4;">"${d.review.text}"</div>
+    <>
+      <div ref={containerRef} className="absolute inset-0 flex items-center justify-center opacity-40 pointer-events-auto z-0">
+        <Globe
+          ref={globeRef}
+          width={dimensions.width}
+          height={dimensions.height}
+          globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
+          bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
+          backgroundColor="rgba(0,0,0,0)"
+          pointsData={gData}
+          pointAltitude="size"
+          pointColor={(d: any) => d === hoveredPoint ? '#FFFFFF' : d.color}
+          pointRadius={(d: any) => d === hoveredPoint ? 1.5 : 0.8}
+          pointsMerge={false}
+          onPointHover={(point) => setHoveredPoint(point)}
+        />
+      </div>
+      {hoveredPoint && createPortal(
+        <div
+          className="fixed z-[9999] pointer-events-none transition-opacity duration-200"
+          style={{
+            left: mousePos.x + 20,
+            top: mousePos.y + 20,
+          }}
+        >
+          <div className="bg-[#0a0a0a]/95 border border-[#C5A059]/50 p-4 rounded-xl shadow-[0_0_30px_rgba(197,160,89,0.3)] backdrop-blur-md max-w-[250px] font-sans">
+            <div className="text-[#C5A059] text-sm mb-1">
+              {"★".repeat(hoveredPoint.review.rating) + "☆".repeat(5 - hoveredPoint.review.rating)}
             </div>
-          `;
-        }}
-      />
-    </div>
+            <div className="text-white text-xs mb-2 font-bold">
+              {hoveredPoint.review.name} - {hoveredPoint.review.location}
+            </div>
+            <div className="text-white/70 text-[11px] leading-relaxed">
+              "{hoveredPoint.review.text}"
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
   );
 }
