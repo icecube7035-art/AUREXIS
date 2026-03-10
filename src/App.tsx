@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { ArrowUpRight, Layers, Activity, Globe, Shield, Server, Compass, ShoppingBag } from "lucide-react";
+import { ArrowUpRight, Layers, Activity, Globe, Shield, Server, Compass, ShoppingBag, Star, ArrowLeft } from "lucide-react";
+import { reviews } from "./data/reviews";
+import InteractiveGlobe from "./components/InteractiveGlobe";
 
 const products = [
   {
@@ -49,6 +51,10 @@ const features = [
 
 export default function App() {
   const [introComplete, setIntroComplete] = useState(false);
+  const [showAllReviews, setShowAllReviews] = useState(false);
+  const [allReviews, setAllReviews] = useState(reviews);
+  const [newReview, setNewReview] = useState({ name: "", location: "", rating: 5, text: "" });
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
   useEffect(() => {
     // Disable scrolling during intro
@@ -102,10 +108,12 @@ export default function App() {
       </motion.nav>
 
       <main className="w-full max-w-7xl mx-auto px-6 md:px-12 lg:px-24 relative z-10">
-        {/* Hero Section (Acts as Intro initially) */}
-        <section className="min-h-[70vh] flex flex-col items-center justify-center text-center py-20 relative">
+        {!showAllReviews && (
+          <>
+            {/* Hero Section (Acts as Intro initially) */}
+            <section className="min-h-[70vh] flex flex-col items-center justify-center text-center py-20 relative">
           
-          {/* Logo - fades in after intro */}
+          {/* Globe - fades in after intro */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }}
             animate={{ 
@@ -114,32 +122,14 @@ export default function App() {
               filter: introComplete ? "blur(0px)" : "blur(10px)" 
             }}
             transition={{ duration: 1.5, ease: "easeOut" }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 w-full h-[80vh] max-h-[800px] flex items-center justify-center pointer-events-auto"
           >
-            {/* Logo Placeholder - User should replace src with actual uploaded logo path */}
-            <div className="relative w-64 h-64 md:w-96 md:h-96 mx-auto flex items-center justify-center">
-              <div className="absolute inset-0 bg-[#C5A059]/10 blur-3xl rounded-full" />
-              <img 
-                src="/logo.png" 
-                alt="AUREXIS Logo" 
-                className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_15px_rgba(197,160,89,0.3)]"
-                onError={(e) => {
-                  // Fallback if logo.png is not found
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.parentElement?.classList.add('fallback-logo');
-                }}
-              />
-              {/* Fallback visual if image fails to load */}
-              <div className="hidden fallback-logo w-48 h-48 rounded-full border border-[#C5A059]/30 flex items-center justify-center relative z-10">
-                 <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#C5A059] to-[#8A6D23] shadow-[0_0_30px_rgba(197,160,89,0.4)]" />
-                 <div className="absolute inset-[-20%] border border-[#C5A059]/20 rounded-[40%] animate-[spin_10s_linear_infinite]" />
-                 <div className="absolute inset-[-40%] border border-[#C5A059]/10 rounded-[35%] animate-[spin_15s_linear_infinite_reverse]" />
-              </div>
-            </div>
+            <div className="absolute inset-0 bg-[#C5A059]/5 blur-3xl rounded-full pointer-events-none" />
+            <InteractiveGlobe />
           </motion.div>
           
           {/* Intro / Hero Text - animates in immediately and stays */}
-          <div className="relative z-30 flex flex-col items-center justify-center mt-8">
+          <div className="relative z-30 flex flex-col items-center justify-center mt-8 pointer-events-none">
             <motion.h1 
               initial={{ opacity: 0, scale: 0.9, letterSpacing: "0em" }}
               animate={{ opacity: 1, scale: 1, letterSpacing: "0.2em" }}
@@ -284,6 +274,157 @@ export default function App() {
               })}
             </div>
           </div>
+        </motion.section>
+        </>
+        )}
+
+        {/* Wall of Love (Testimonials) Section */}
+        <motion.section 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: introComplete ? 1 : 0 }}
+          transition={{ duration: 1.5, ease: "easeInOut" }}
+          className={showAllReviews ? "py-12" : "py-32"}
+        >
+          {showAllReviews && (
+            <button 
+              onClick={() => { setShowAllReviews(false); window.scrollTo(0, 0); }}
+              className="mb-12 flex items-center gap-2 text-white/50 hover:text-[#C5A059] transition-colors font-mono text-sm uppercase tracking-widest"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to Home
+            </button>
+          )}
+
+          <motion.div 
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8 }}
+            className="mb-12 flex items-center gap-6"
+          >
+            <h2 className="text-xs font-mono text-[#C5A059] uppercase tracking-[0.2em]">
+              {showAllReviews ? "All Reviews" : "Wall of Love"}
+            </h2>
+            <div className="h-[1px] flex-grow bg-gradient-to-r from-[#C5A059]/20 to-transparent" />
+          </motion.div>
+
+          {/* Add Review Form */}
+          {!showAllReviews && (
+            <div className="mb-16">
+              {!reviewSubmitted ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="bg-white/[0.02] border border-white/[0.05] p-8 rounded-2xl"
+                >
+                  <h3 className="text-lg font-medium text-white mb-6">Add your own review</h3>
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    if (newReview.name && newReview.text) {
+                      setAllReviews([newReview, ...allReviews]);
+                      setReviewSubmitted(true);
+                    }
+                  }} className="space-y-4">
+                    <div className="flex gap-4 flex-col md:flex-row">
+                      <input 
+                        type="text" 
+                        placeholder="Your Name" 
+                        required
+                        value={newReview.name}
+                        onChange={e => setNewReview({...newReview, name: e.target.value})}
+                        className="flex-1 bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-[#C5A059]/50 transition-colors"
+                      />
+                      <input 
+                        type="text" 
+                        placeholder="Where are you from? (e.g. London, UK)" 
+                        value={newReview.location}
+                        onChange={e => setNewReview({...newReview, location: e.target.value})}
+                        className="flex-1 bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-[#C5A059]/50 transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <div className="flex gap-2 mb-2 items-center">
+                        <span className="text-sm text-white/50 mr-2">Rating:</span>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setNewReview({...newReview, rating: star})}
+                            className="focus:outline-none"
+                          >
+                            <Star className={`w-5 h-5 ${star <= newReview.rating ? "fill-[#C5A059] text-[#C5A059]" : "text-white/20 hover:text-white/40"} transition-colors`} />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <textarea 
+                      placeholder="Write your review here..." 
+                      required
+                      rows={3}
+                      value={newReview.text}
+                      onChange={e => setNewReview({...newReview, text: e.target.value})}
+                      className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-[#C5A059]/50 transition-colors resize-none"
+                    />
+                    <button 
+                      type="submit"
+                      className="px-6 py-3 bg-[#C5A059] text-black font-medium rounded-lg hover:bg-[#d4b26f] transition-colors"
+                    >
+                      Submit Review
+                    </button>
+                  </form>
+                </motion.div>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-[#C5A059]/10 border border-[#C5A059]/30 p-8 rounded-2xl text-center"
+                >
+                  <h3 className="text-xl font-medium text-[#C5A059] mb-2">Thank you for your review!</h3>
+                  <p className="text-white/70">Your feedback has been added to our Wall of Love.</p>
+                </motion.div>
+              )}
+            </div>
+          )}
+
+          <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
+            {(showAllReviews ? allReviews : allReviews.slice(0, 6)).map((review, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5, delay: (index % 10) * 0.05 }}
+                className="break-inside-avoid inline-block w-full bg-white/[0.02] border border-white/[0.05] p-8 rounded-2xl hover:bg-white/[0.04] hover:border-[#C5A059]/30 transition-all duration-500"
+              >
+                <div className="flex gap-1 mb-4">
+                  {[...Array(5)].map((_, i) => (
+                    <Star 
+                      key={i} 
+                      className={`w-4 h-4 ${i < review.rating ? "fill-[#C5A059] text-[#C5A059]" : "text-white/10"}`} 
+                    />
+                  ))}
+                </div>
+                <p className="text-white/70 font-light leading-relaxed mb-6 text-sm">
+                  "{review.text}"
+                </p>
+                <div>
+                  <div className="text-white font-medium text-sm">{review.name}</div>
+                  <div className="text-white/40 text-xs mt-1">{review.location}</div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {!showAllReviews && allReviews.length > 6 && (
+            <div className="mt-16 flex justify-center">
+              <button 
+                onClick={() => { setShowAllReviews(true); window.scrollTo(0, 0); }}
+                className="px-8 py-3 rounded-full border border-[#C5A059]/30 text-[#C5A059] hover:bg-[#C5A059]/10 transition-colors font-mono text-[19px] uppercase tracking-widest"
+              >
+                View All {allReviews.length} Reviews
+              </button>
+            </div>
+          )}
         </motion.section>
       </main>
 
