@@ -75,12 +75,21 @@ export default function InteractiveGlobe() {
 
   useEffect(() => {
     if (globeRef.current) {
-      globeRef.current.controls().autoRotate = true;
-      globeRef.current.controls().autoRotateSpeed = hoveredPoint ? 0.05 : 0.5;
-      globeRef.current.controls().enableZoom = false;
-      globeRef.current.pointOfView({ altitude: 2.5 });
+      globeRef.current.controls().autoRotate = !hoveredPoint;
+      globeRef.current.controls().autoRotateSpeed = 0.5;
     }
   }, [hoveredPoint]);
+
+  useEffect(() => {
+    // Initial camera setup
+    const timer = setTimeout(() => {
+      if (globeRef.current) {
+        globeRef.current.controls().enableZoom = false;
+        globeRef.current.pointOfView({ altitude: 2.5 });
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const gData = reviews.map(review => {
     const coords = locationCoordinates[review.location] || { lat: (Math.random() - 0.5) * 180, lng: (Math.random() - 0.5) * 360 };
