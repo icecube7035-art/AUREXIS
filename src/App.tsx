@@ -7,20 +7,20 @@ import InteractiveGlobe from "./components/InteractiveGlobe";
 const products = [
   {
     name: "MakrOS",
-    url: "https://makros.netlify.app",
+    url: "https://makros-production.up.railway.app",
     description: "A creator operating system designed to help digital creators think, execute, and monetize with clarity.",
     icon: Layers,
   },
   {
-    name: "Ellite Workout",
-    url: "https://elliteworkout.netlify.app",
+    name: "Elite Workout",
+    url: "https://calworkout-production.up.railway.app",
     description: "A focused fitness platform built around structure, discipline, and sustainable performance.",
     icon: Activity,
   },
   {
-    name: "AD SAICO",
-    url: "https://adsaico.netlify.app",
-    description: "A digital solutions and advertising platform supporting modern brands and creators.",
+    name: "ADAI",
+    url: "https://adai-production.up.railway.app",
+    description: "An AI Ad Generator Platform supporting modern brands and creators.",
     icon: Globe,
   },
   {
