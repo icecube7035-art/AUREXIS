@@ -112,6 +112,9 @@ export default function InteractiveGlobe() {
           globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
           bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
           backgroundColor="rgba(0,0,0,0)"
+          showAtmosphere={true}
+          atmosphereColor="#C5A059"
+          atmosphereAltitude={0.25}
           pointsData={gData}
           pointAltitude="size"
           pointColor={(d: any) => d === hoveredPoint ? '#FFFFFF' : d.color}
