@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { motion } from "motion/react";
-import { ArrowUpRight, Layers, Activity, Globe, Shield, Server, Compass, ShoppingBag, Star, ArrowLeft } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { ArrowUpRight, Layers, Activity, Globe, ShoppingBag, Star, ArrowLeft, Mail, X } from "lucide-react";
 import { reviews } from "./data/reviews";
 import InteractiveGlobe from "./components/InteractiveGlobe";
 
@@ -8,19 +8,19 @@ const products = [
   {
     name: "MakrOS",
     url: "https://makros-production.up.railway.app",
-    description: "A creator operating system designed to help digital creators think, execute, and monetize with clarity.",
+    description: "A productivity and content operating system designed to help digital creators think, execute, and monetize with clarity.",
     icon: Layers,
   },
   {
     name: "Elite Workout",
     url: "https://calworkout-production.up.railway.app",
-    description: "A focused fitness platform built around structure, discipline, and sustainable performance.",
+    description: "A calisthenics training system for building strength, structure, and discipline.",
     icon: Activity,
   },
   {
     name: "ADAI",
     url: "https://adai-production.up.railway.app",
-    description: "An AI Ad Generator Platform supporting modern brands and creators.",
+    description: "An AI-powered advertisement generator supporting modern brands and creators.",
     icon: Globe,
   },
   {
@@ -31,30 +31,14 @@ const products = [
   },
 ];
 
-const features = [
-  {
-    title: "Structure",
-    description: "Independent operation with unified standards.",
-    icon: Shield,
-  },
-  {
-    title: "Infrastructure",
-    description: "Robust foundations for scalable software.",
-    icon: Server,
-  },
-  {
-    title: "Direction",
-    description: "Long-term vision over short-term trends.",
-    icon: Compass,
-  },
-];
-
 export default function App() {
   const [introComplete, setIntroComplete] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [allReviews, setAllReviews] = useState(reviews);
   const [newReview, setNewReview] = useState({ name: "", location: "", rating: 5, text: "" });
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [contactForm, setContactForm] = useState({ name: "", email: "", message: "" });
+  const [showEcosystemModal, setShowEcosystemModal] = useState(false);
 
   useEffect(() => {
     // Disable scrolling during intro
@@ -183,10 +167,22 @@ export default function App() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1.5, ease: "easeOut", delay: 1.2 }}
-              className="text-xl md:text-3xl font-light leading-relaxed tracking-wide text-white/80 max-w-2xl"
+              className="text-xl md:text-2xl font-light leading-relaxed tracking-wide text-white/80 max-w-3xl"
             >
-              A software company building focused digital products.
+              A digital ecosystem that creates powerful web tools designed to improve productivity, creativity, and everyday digital workflows.
+              <br /><br />
+              <span className="text-sm md:text-base text-white/50">Aurexis builds intelligent digital platforms that help people work smarter, create faster, and grow online.</span>
             </motion.p>
+
+            <motion.button
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1.5, ease: "easeOut", delay: 1.6 }}
+              onClick={() => setShowEcosystemModal(true)}
+              className="mt-10 px-8 py-4 bg-[#C5A059] text-black font-medium text-sm uppercase tracking-widest rounded-full hover:bg-[#d4b26f] transition-all hover:scale-105 pointer-events-auto shadow-[0_0_20px_rgba(197,160,89,0.2)]"
+            >
+              Explore Ecosystem
+            </motion.button>
           </div>
         </section>
 
@@ -244,6 +240,10 @@ export default function App() {
                       {product.description}
                     </p>
 
+                    <div className="mt-6 flex items-center text-xs font-mono text-[#C5A059] uppercase tracking-wider group-hover:text-white transition-colors duration-500">
+                      Visit Platform <ArrowUpRight className="ml-2 w-4 h-4" />
+                    </div>
+
                     {/* Animated Underline */}
                     <div className="absolute bottom-0 left-0 w-0 h-[2px] bg-gradient-to-r from-[#C5A059] to-transparent group-hover:w-full transition-all duration-700 ease-out" />
                   </div>
@@ -253,7 +253,7 @@ export default function App() {
           </div>
         </motion.section>
 
-        {/* Brand Relationship Section - fades in after intro */}
+        {/* About Aurexis Section - fades in after intro */}
         <motion.section 
           initial={{ opacity: 0 }}
           animate={{ opacity: introComplete ? 1 : 0 }}
@@ -268,7 +268,7 @@ export default function App() {
             className="mb-20 flex items-center gap-6"
           >
             <h2 className="text-xs font-mono text-[#C5A059] uppercase tracking-[0.2em]">
-              Structure & Intent
+              About Aurexis
             </h2>
             <div className="h-[1px] flex-grow bg-gradient-to-r from-[#C5A059]/20 to-transparent" />
           </motion.div>
@@ -279,40 +279,23 @@ export default function App() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.8 }}
-              className="lg:col-span-5"
+              className="lg:col-span-12 max-w-4xl"
             >
               <h3 className="text-2xl md:text-3xl font-light text-white leading-tight mb-6">
-                Independent products.<br />
-                <span className="text-white/40">Unified foundation.</span>
+                Building simple but powerful digital systems.
               </h3>
-              <p className="text-base text-white/60 font-light leading-relaxed">
-                AUREXIS operates as the silent infrastructure behind its products. The parent brand remains intentionally low-profile, allowing each software system to serve its respective audience without distraction.
+              <p className="text-base md:text-lg text-white/60 font-light leading-relaxed mb-10">
+                Aurexis is a digital platform focused on building powerful and accessible tools that help people create, work, and grow online.
               </p>
+              
+              <div className="p-8 border border-white/10 bg-white/[0.02] rounded-2xl relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-1 h-full bg-[#C5A059]" />
+                <h4 className="text-[#C5A059] font-mono text-xs uppercase tracking-widest mb-4">Our Mission</h4>
+                <p className="text-xl text-white/80 font-light italic leading-relaxed">
+                  "Our mission is to build simple but powerful digital systems that enhance productivity, creativity, and human potential."
+                </p>
+              </div>
             </motion.div>
-
-            <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-8">
-              {features.map((feature, index) => {
-                const Icon = feature.icon;
-                return (
-                  <motion.div
-                    key={feature.title}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-50px" }}
-                    transition={{ duration: 0.6, delay: index * 0.15 }}
-                    className="flex flex-col"
-                  >
-                    <Icon className="w-6 h-6 text-[#C5A059] mb-6 opacity-80" strokeWidth={1.5} />
-                    <h4 className="text-sm font-medium text-white tracking-wide mb-3">
-                      {feature.title}
-                    </h4>
-                    <p className="text-sm text-white/40 font-light leading-relaxed">
-                      {feature.description}
-                    </p>
-                  </motion.div>
-                );
-              })}
-            </div>
           </div>
         </motion.section>
         </>
@@ -466,6 +449,99 @@ export default function App() {
             </div>
           )}
         </motion.section>
+
+        {/* Contact Section */}
+        <motion.section 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: introComplete ? 1 : 0 }}
+          transition={{ duration: 1.5, ease: "easeInOut" }}
+          className="py-32"
+        >
+          <motion.div 
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8 }}
+            className="mb-20 flex items-center gap-6"
+          >
+            <h2 className="text-xs font-mono text-[#C5A059] uppercase tracking-[0.2em]">
+              Contact Aurexis
+            </h2>
+            <div className="h-[1px] flex-grow bg-gradient-to-r from-[#C5A059]/20 to-transparent" />
+          </motion.div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.8 }}
+            >
+              <h3 className="text-2xl md:text-3xl font-light text-white leading-tight mb-6">
+                Have questions, ideas, or collaboration requests?
+              </h3>
+              <p className="text-base text-white/60 font-light leading-relaxed mb-10">
+                We'd love to hear from you. Whether you're interested in our platforms, looking for a partnership, or just want to connect, our inbox is always open.
+              </p>
+              
+              <div className="flex flex-col gap-6">
+                <a href="mailto:icecube7035@gmail.com" className="group flex items-center gap-4 text-white/60 hover:text-[#C5A059] transition-colors w-fit">
+                  <div className="w-12 h-12 rounded-full bg-white/[0.02] border border-white/10 flex items-center justify-center group-hover:border-[#C5A059]/50 transition-colors">
+                    <Mail className="w-5 h-5" />
+                  </div>
+                  <span className="font-mono text-sm tracking-wider">icecube7035@gmail.com</span>
+                </a>
+              </div>
+            </motion.div>
+
+            <motion.form 
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.8 }}
+              onSubmit={(e) => {
+                e.preventDefault();
+                const subject = encodeURIComponent(`New Contact Inquiry from ${contactForm.name}`);
+                const body = encodeURIComponent(`Name: ${contactForm.name}\nEmail: ${contactForm.email}\n\nMessage:\n${contactForm.message}`);
+                window.location.href = `mailto:icecube7035@gmail.com?subject=${subject}&body=${body}`;
+              }} 
+              className="space-y-6 bg-white/[0.02] border border-white/[0.05] p-8 rounded-2xl"
+            >
+              <div className="flex gap-6 flex-col sm:flex-row">
+                <input 
+                  type="text" 
+                  placeholder="Your Name" 
+                  required
+                  value={contactForm.name}
+                  onChange={e => setContactForm({...contactForm, name: e.target.value})}
+                  className="flex-1 bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-[#C5A059]/50 transition-colors" 
+                />
+                <input 
+                  type="email" 
+                  placeholder="Your Email" 
+                  required
+                  value={contactForm.email}
+                  onChange={e => setContactForm({...contactForm, email: e.target.value})}
+                  className="flex-1 bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-[#C5A059]/50 transition-colors" 
+                />
+              </div>
+              <textarea 
+                placeholder="How can we help you?" 
+                rows={5} 
+                required
+                value={contactForm.message}
+                onChange={e => setContactForm({...contactForm, message: e.target.value})}
+                className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-[#C5A059]/50 transition-colors resize-none" 
+              />
+              <button 
+                type="submit" 
+                className="px-8 py-4 bg-[#C5A059] text-black font-medium rounded-lg hover:bg-[#d4b26f] transition-colors w-full sm:w-auto"
+              >
+                Send Message
+              </button>
+            </motion.form>
+          </div>
+        </motion.section>
       </main>
 
       {/* Footer - fades in after intro */}
@@ -485,6 +561,70 @@ export default function App() {
           Systems Company
         </div>
       </motion.footer>
+
+      {/* Ecosystem Full Page Modal */}
+      <AnimatePresence>
+        {showEcosystemModal && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.98 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="fixed inset-0 z-[9999] bg-[#0a0a0a]/95 backdrop-blur-xl overflow-y-auto"
+          >
+            <div className="min-h-screen px-6 py-20 md:px-12 lg:px-24 max-w-7xl mx-auto relative">
+              <button
+                onClick={() => setShowEcosystemModal(false)}
+                className="fixed top-8 right-6 md:right-12 lg:right-24 p-3 text-white/50 hover:text-white transition-colors bg-white/5 rounded-full hover:bg-white/10 z-50"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              <div className="max-w-3xl mb-16 pt-10">
+                <h2 className="text-xs font-mono text-[#C5A059] uppercase tracking-[0.2em] mb-4">The Aurexis Ecosystem</h2>
+                <h3 className="text-4xl md:text-5xl font-light text-white mb-6 leading-tight">
+                  A unified network of <span className="text-[#C5A059]">digital platforms.</span>
+                </h3>
+                <p className="text-lg text-white/60 font-light leading-relaxed">
+                  Aurexis is a digital platform focused on building powerful and accessible tools that help people create, work, and grow online. Our mission is to build simple but powerful digital systems that enhance productivity, creativity, and human potential.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-20">
+                {products.map((product, index) => {
+                  const Icon = product.icon;
+                  return (
+                    <a
+                      key={product.name}
+                      href={product.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group relative block p-8 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] hover:border-[#C5A059]/30 transition-all duration-500 overflow-hidden"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-b from-[#C5A059]/0 to-[#C5A059]/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                      <div className="relative z-10">
+                        <div className="w-12 h-12 rounded-full bg-black/50 border border-white/10 flex items-center justify-center mb-8 group-hover:border-[#C5A059]/50 group-hover:shadow-[0_0_20px_rgba(197,160,89,0.15)] transition-all duration-500">
+                          <Icon className="w-5 h-5 text-white/70 group-hover:text-[#C5A059] transition-colors duration-500" strokeWidth={1.5} />
+                        </div>
+                        <div className="flex justify-between items-center mb-4">
+                          <h3 className="text-xl font-medium text-white tracking-wide">{product.name}</h3>
+                          <ArrowUpRight className="w-5 h-5 text-white/30 group-hover:text-[#C5A059] group-hover:-translate-y-1 group-hover:translate-x-1 transition-all duration-500" strokeWidth={1.5} />
+                        </div>
+                        <p className="text-sm text-white/50 leading-relaxed font-light group-hover:text-white/70 transition-colors duration-500">
+                          {product.description}
+                        </p>
+                        <div className="mt-6 flex items-center text-xs font-mono text-[#C5A059] uppercase tracking-wider group-hover:text-white transition-colors duration-500">
+                          Visit Platform <ArrowUpRight className="ml-2 w-4 h-4" />
+                        </div>
+                      </div>
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
