@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: news
+    // Document ID: auto-generated
+    // Fields:
+    //   - title: string (required, < 100 chars) - The title of the news post.
+    //   - content: string (required, < 5000 chars) - The main content/body.
+    //   - createdAt: timestamp (required) - When the post was created.
+    //   - authorId: string (required) - The UID of the admin who created the post.
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && request.auth.token.email == "icecube7035@gmail.com" && request.auth.token.email_verified == true;
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidNewsPost(data) {
+      return hasOnlyAllowedFields(['title', 'content', 'createdAt', 'authorId']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 100 &&
+             data.content is string && data.content.size() > 0 && data.content.size() <= 5000 &&
+             data.createdAt is timestamp &&
+             data.authorId is string && data.authorId == request.auth.uid;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.authorId;
+    }
+
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /news/{newsId} {
+      // Anyone can read the news
+      allow read: if true;
+      
+      // Only the admin can create news
+      allow create: if isAdmin() && isValidNewsPost(request.resource.data);
+      
+      // Only the admin can update news (and can't change the authorId or createdAt)
+      allow update: if isAdmin() && isDocOwner() && isValidNewsPost(request.resource.data) && areImmutableFieldsUnchanged(['authorId', 'createdAt']);
+      
+      // Only the admin can delete news
+      allow delete: if isAdmin() && isDocOwner();
+    }
+  }
+}

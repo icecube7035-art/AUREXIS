@@ -1,0 +1,36 @@
+{
+  "entities": {
+    "NewsPost": {
+      "title": "News Post",
+      "description": "A news update or announcement for the Aurexis platform.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "The title of the news post."
+        },
+        "content": {
+          "type": "string",
+          "description": "The main content/body of the news post."
+        },
+        "createdAt": {
+          "type": "timestamp",
+          "description": "When the post was created."
+        },
+        "authorId": {
+          "type": "string",
+          "description": "The UID of the admin who created the post."
+        }
+      },
+      "required": ["title", "content", "createdAt", "authorId"]
+    }
+  },
+  "firestore": {
+    "/news/{newsId}": {
+      "schema": {
+        "$ref": "#/entities/NewsPost"
+      },
+      "description": "Stores all news posts and updates."
+    }
+  }
+}

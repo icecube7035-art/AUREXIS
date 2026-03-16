@@ -1,8 +1,19 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowUpRight, Layers, Activity, Globe, ShoppingBag, Star, ArrowLeft, Mail, X } from "lucide-react";
+import { ArrowUpRight, Layers, Activity, Globe, ShoppingBag, Star, ArrowLeft, Mail, X, Lock, Unlock, Plus, Trash2 } from "lucide-react";
 import { reviews } from "./data/reviews";
 import InteractiveGlobe from "./components/InteractiveGlobe";
+import { db, auth, loginWithGoogle, logout } from "./firebase";
+import { collection, query, orderBy, onSnapshot, addDoc, deleteDoc, doc, serverTimestamp, Timestamp } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
+
+interface NewsPost {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: Timestamp | null;
+  authorId: string;
+}
 
 const products = [
   {
@@ -32,6 +43,7 @@ const products = [
 ];
 
 export default function App() {
+  const [currentPage, setCurrentPage] = useState<'home' | 'news'>('home');
   const [introComplete, setIntroComplete] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [allReviews, setAllReviews] = useState(reviews);
@@ -39,6 +51,118 @@ export default function App() {
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [contactForm, setContactForm] = useState({ name: "", email: "", message: "" });
   const [showEcosystemModal, setShowEcosystemModal] = useState(false);
+
+  // Firebase Auth & News State
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [news, setNews] = useState<NewsPost[]>([]);
+  const [showNewsForm, setShowNewsForm] = useState(false);
+  const [newPost, setNewPost] = useState({ title: "", content: "" });
+
+  // Modal State
+  const [modalConfig, setModalConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'alert' | 'confirm';
+    onConfirm?: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'alert'
+  });
+
+  const closeModal = () => setModalConfig(prev => ({ ...prev, isOpen: false }));
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      // Check if logged in user is the admin
+      if (user && user.email === "icecube7035@gmail.com") {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    // Fetch news posts
+    const q = query(collection(db, "news"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const newsData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as NewsPost[];
+      setNews(newsData);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleCreatePost = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPost.title || !newPost.content || !auth.currentUser) return;
+    
+    try {
+      await addDoc(collection(db, "news"), {
+        title: newPost.title,
+        content: newPost.content,
+        createdAt: serverTimestamp(),
+        authorId: auth.currentUser.uid
+      });
+      setNewPost({ title: "", content: "" });
+      setShowNewsForm(false);
+    } catch (error) {
+      console.error("Error creating post:", error);
+      setModalConfig({
+        isOpen: true,
+        title: 'Error',
+        message: 'Failed to create post. Check console for details.',
+        type: 'alert'
+      });
+    }
+  };
+
+  const handleDeletePost = (id: string) => {
+    setModalConfig({
+      isOpen: true,
+      title: 'Delete Post',
+      message: 'Are you sure you want to delete this post?',
+      type: 'confirm',
+      onConfirm: async () => {
+        try {
+          await deleteDoc(doc(db, "news", id));
+        } catch (error) {
+          console.error("Error deleting post:", error);
+        }
+        closeModal();
+      }
+    });
+  };
+
+  const handleLogin = async () => {
+    try {
+      await loginWithGoogle();
+    } catch (error: any) {
+      if (error?.code === 'auth/popup-blocked') {
+        setModalConfig({
+          isOpen: true,
+          title: 'Popup Blocked',
+          message: 'Your browser blocked the sign-in popup. Please allow popups for this site and try again.',
+          type: 'alert'
+        });
+      } else if (error?.code === 'auth/cancelled-popup-request' || error?.code === 'auth/popup-closed-by-user') {
+        // User closed the popup or clicked multiple times, no need to show an error
+      } else {
+        setModalConfig({
+          isOpen: true,
+          title: 'Sign In Error',
+          message: 'An error occurred while signing in. Please try again.',
+          type: 'alert'
+        });
+      }
+    }
+  };
 
   useEffect(() => {
     // Disable scrolling during intro
@@ -113,27 +237,38 @@ export default function App() {
         transition={{ duration: 1.5, ease: "easeOut" }}
         className="w-full px-6 py-8 md:px-12 lg:px-24 flex justify-between items-center relative z-10"
       >
-        <motion.div 
+        <motion.button 
           initial={{ opacity: 0 }}
           animate={{ opacity: introComplete ? 1 : 0 }}
           transition={{ duration: 0.8, ease: "easeOut", delay: introComplete ? 0.2 : 0 }}
-          className="text-xs tracking-[0.2em] font-medium uppercase text-white/50"
+          onClick={() => { setCurrentPage('home'); setShowAllReviews(false); window.scrollTo(0, 0); }}
+          className="text-xs tracking-[0.2em] font-medium uppercase text-white/50 hover:text-white transition-colors"
         >
           Aurexis
-        </motion.div>
+        </motion.button>
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: introComplete ? 1 : 0 }}
           transition={{ duration: 0.8, ease: "easeOut", delay: introComplete ? 0.3 : 0 }}
-          className="text-xs font-mono text-white/30 uppercase tracking-widest"
+          className="flex items-center gap-8"
         >
-          Index 01
+          <button 
+            onClick={() => { setCurrentPage('news'); window.scrollTo(0, 0); }}
+            className={`text-xs font-mono uppercase tracking-widest transition-colors ${currentPage === 'news' ? 'text-[#C5A059]' : 'text-white/30 hover:text-white/70'}`}
+          >
+            What's New
+          </button>
+          <div className="text-xs font-mono text-white/30 uppercase tracking-widest hidden sm:block">
+            Index 01
+          </div>
         </motion.div>
       </motion.nav>
 
       <main className="w-full max-w-7xl mx-auto px-6 md:px-12 lg:px-24 relative z-10">
-        {!showAllReviews && (
+        {currentPage === 'home' ? (
           <>
+            {!showAllReviews && (
+              <>
             {/* Hero Section (Acts as Intro initially) */}
             <section className="min-h-[70vh] flex flex-col items-center justify-center text-center py-20 relative">
           
@@ -298,8 +433,8 @@ export default function App() {
             </motion.div>
           </div>
         </motion.section>
-        </>
-        )}
+              </>
+            )}
 
         {/* Wall of Love (Testimonials) Section */}
         <motion.section 
@@ -542,6 +677,127 @@ export default function App() {
             </motion.form>
           </div>
         </motion.section>
+          </>
+        ) : (
+          <motion.section 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="py-12 md:py-24 min-h-[70vh]"
+          >
+            <button 
+              onClick={() => { setCurrentPage('home'); window.scrollTo(0, 0); }}
+              className="mb-12 flex items-center gap-2 text-white/50 hover:text-[#C5A059] transition-colors font-mono text-sm uppercase tracking-widest"
+            >
+              <ArrowLeft className="w-4 h-4" /> Back to Home
+            </button>
+
+            <div className="mb-16 flex items-center justify-between gap-6">
+              <div className="flex items-center gap-6 flex-grow">
+                <h2 className="text-xs font-mono text-[#C5A059] uppercase tracking-[0.2em] whitespace-nowrap">
+                  What's New
+                </h2>
+                <div className="h-[1px] flex-grow bg-gradient-to-r from-[#C5A059]/20 to-transparent" />
+              </div>
+              
+              <div className="flex items-center gap-4">
+                {isAdmin && (
+                  <button 
+                    onClick={() => setShowNewsForm(!showNewsForm)}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#C5A059]/10 text-[#C5A059] rounded-lg border border-[#C5A059]/30 hover:bg-[#C5A059]/20 transition-colors text-xs font-mono uppercase tracking-widest"
+                  >
+                    {showNewsForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                    {showNewsForm ? "Cancel" : "New Post"}
+                  </button>
+                )}
+                <button 
+                  onClick={isAdmin ? logout : handleLogin}
+                  className="text-white/20 hover:text-[#C5A059] transition-colors p-2"
+                  title={isAdmin ? "Logout Admin" : "Admin Login"}
+                >
+                  {isAdmin ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Admin Create Post Form */}
+            <AnimatePresence>
+              {isAdmin && showNewsForm && (
+                <motion.form
+                  initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  animate={{ opacity: 1, height: "auto", marginBottom: 48 }}
+                  exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  className="overflow-hidden"
+                  onSubmit={handleCreatePost}
+                >
+                  <div className="bg-white/[0.02] border border-[#C5A059]/30 p-8 rounded-2xl space-y-4">
+                    <h3 className="text-lg font-medium text-[#C5A059] mb-4">Create News Update</h3>
+                    <input 
+                      type="text" 
+                      placeholder="Post Title" 
+                      required
+                      maxLength={100}
+                      value={newPost.title}
+                      onChange={e => setNewPost({...newPost, title: e.target.value})}
+                      className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-[#C5A059]/50 transition-colors"
+                    />
+                    <textarea 
+                      placeholder="Post Content..." 
+                      required
+                      maxLength={5000}
+                      rows={4}
+                      value={newPost.content}
+                      onChange={e => setNewPost({...newPost, content: e.target.value})}
+                      className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-[#C5A059]/50 transition-colors resize-none"
+                    />
+                    <button 
+                      type="submit"
+                      className="px-6 py-3 bg-[#C5A059] text-black font-medium rounded-lg hover:bg-[#d4b26f] transition-colors"
+                    >
+                      Publish Post
+                    </button>
+                  </div>
+                </motion.form>
+              )}
+            </AnimatePresence>
+
+            {/* News Feed */}
+            <div className="space-y-6">
+              {news.length === 0 ? (
+                <div className="text-center py-12 border border-white/5 rounded-2xl bg-white/[0.01]">
+                  <p className="text-white/40 font-light">No recent updates.</p>
+                </div>
+              ) : (
+                news.map((post) => (
+                  <motion.div 
+                    key={post.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="p-8 rounded-2xl bg-white/[0.02] border border-white/[0.05] relative group"
+                  >
+                    {isAdmin && (
+                      <button 
+                        onClick={() => handleDeletePost(post.id)}
+                        className="absolute top-6 right-6 p-2 text-white/20 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                        title="Delete Post"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                    <div className="text-xs font-mono text-[#C5A059] mb-3">
+                      {post.createdAt ? post.createdAt.toDate().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'Just now'}
+                    </div>
+                    <h3 className="text-xl font-medium text-white mb-4 pr-8">{post.title}</h3>
+                    <p className="text-white/60 font-light leading-relaxed whitespace-pre-wrap">
+                      {post.content}
+                    </p>
+                  </motion.div>
+                ))
+              )}
+            </div>
+          </motion.section>
+        )}
       </main>
 
       {/* Footer - fades in after intro */}
@@ -557,10 +813,56 @@ export default function App() {
             AUREXIS © {new Date().getFullYear()}
           </div>
         </div>
-        <div className="text-xs font-mono text-white/30 uppercase tracking-[0.2em]">
-          Systems Company
+        <div className="flex items-center gap-6">
+          <div className="text-xs font-mono text-white/30 uppercase tracking-[0.2em]">
+            Systems Company
+          </div>
         </div>
       </motion.footer>
+
+      {/* Custom Modal */}
+      <AnimatePresence>
+        {modalConfig.isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-[#111] border border-white/10 p-6 rounded-2xl max-w-sm w-full shadow-2xl"
+            >
+              <h3 className="text-xl font-medium text-white mb-2">{modalConfig.title}</h3>
+              <p className="text-white/60 mb-6">{modalConfig.message}</p>
+              <div className="flex justify-end gap-3">
+                {modalConfig.type === 'confirm' && (
+                  <button
+                    onClick={closeModal}
+                    className="px-4 py-2 text-white/60 hover:text-white transition-colors text-sm font-medium"
+                  >
+                    Cancel
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    if (modalConfig.type === 'confirm' && modalConfig.onConfirm) {
+                      modalConfig.onConfirm();
+                    } else {
+                      closeModal();
+                    }
+                  }}
+                  className="px-4 py-2 bg-[#C5A059] text-black rounded-lg hover:bg-[#d4b26f] transition-colors text-sm font-medium"
+                >
+                  {modalConfig.type === 'confirm' ? 'Confirm' : 'OK'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Ecosystem Full Page Modal */}
       <AnimatePresence>
