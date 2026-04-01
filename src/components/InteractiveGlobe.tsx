@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Globe from 'react-globe.gl';
+import * as THREE from 'three';
 import { reviews } from '../data/reviews';
 
 const locationCoordinates: Record<string, { lat: number; lng: number }> = {
@@ -81,14 +82,84 @@ export default function InteractiveGlobe() {
   }, [hoveredPoint]);
 
   useEffect(() => {
-    // Initial camera setup
+    let ringMesh: THREE.Mesh;
+    let starMesh: THREE.Mesh;
+    let starMesh2: THREE.Mesh;
+
+    // Initial camera setup and custom objects
     const timer = setTimeout(() => {
       if (globeRef.current) {
         globeRef.current.controls().enableZoom = false;
         globeRef.current.pointOfView({ altitude: 2.5 });
+
+        // Add custom Three.js objects (Ring and Stars)
+        const scene = globeRef.current.scene();
+        
+        if (!scene.getObjectByName('customRing')) {
+          // 1. Diagonal Gold Ring (like Uranus) - using Torus for 3D thickness
+          const ringGeometry = new THREE.TorusGeometry(130, 0.8, 16, 100);
+          const ringMaterial = new THREE.MeshBasicMaterial({ 
+            color: 0xC5A059, 
+            transparent: true,
+            opacity: 0.7
+          });
+          ringMesh = new THREE.Mesh(ringGeometry, ringMaterial);
+          ringMesh.name = 'customRing';
+          
+          // Tilt the ring diagonally
+          ringMesh.rotation.x = Math.PI / 2.2;
+          ringMesh.rotation.y = Math.PI / 8;
+          
+          scene.add(ringMesh);
+        }
+
+        if (!scene.getObjectByName('customStar')) {
+          // 2. One Star
+          const starGeometry = new THREE.SphereGeometry(2.5, 16, 16);
+          const starMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
+          
+          starMesh = new THREE.Mesh(starGeometry, starMaterial);
+          starMesh.name = 'customStar';
+          starMesh.position.set(160, 110, -60); // Positioned outside the globe
+          
+          scene.add(starMesh);
+        }
+
+        if (!scene.getObjectByName('customStar2')) {
+          // 3. Second Star
+          const starGeometry2 = new THREE.SphereGeometry(2, 16, 16);
+          const starMaterial2 = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
+          
+          starMesh2 = new THREE.Mesh(starGeometry2, starMaterial2);
+          starMesh2.name = 'customStar2';
+          starMesh2.position.set(-150, 80, -50); // Positioned outside the globe on the left
+          
+          scene.add(starMesh2);
+        }
       }
     }, 100);
-    return () => clearTimeout(timer);
+
+    return () => {
+      clearTimeout(timer);
+      if (globeRef.current) {
+        const scene = globeRef.current.scene();
+        if (ringMesh) {
+          scene.remove(ringMesh);
+          ringMesh.geometry.dispose();
+          (ringMesh.material as THREE.Material).dispose();
+        }
+        if (starMesh) {
+          scene.remove(starMesh);
+          starMesh.geometry.dispose();
+          (starMesh.material as THREE.Material).dispose();
+        }
+        if (starMesh2) {
+          scene.remove(starMesh2);
+          starMesh2.geometry.dispose();
+          (starMesh2.material as THREE.Material).dispose();
+        }
+      }
+    };
   }, []);
 
   const gData = reviews.map(review => {

@@ -17,22 +17,10 @@ interface NewsPost {
 
 const products = [
   {
-    name: "MakrOS",
-    url: "https://makros-production.up.railway.app",
-    description: "A productivity and content operating system designed to help digital creators think, execute, and monetize with clarity.",
-    icon: Layers,
-  },
-  {
     name: "Elite Workout",
     url: "https://calworkout-production.up.railway.app",
     description: "A calisthenics training system for building strength, structure, and discipline.",
     icon: Activity,
-  },
-  {
-    name: "ADAI",
-    url: "https://adai-production.up.railway.app",
-    description: "An AI-powered advertisement generator supporting modern brands and creators.",
-    icon: Globe,
   },
   {
     name: "Universo Store",
@@ -344,12 +332,11 @@ export default function App() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {products.map((product, index) => {
               const Icon = product.icon;
+              const CardWrapper = product.url ? motion.a : motion.div;
               return (
-                <motion.a
+                <CardWrapper
                   key={product.name}
-                  href={product.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  {...(product.url ? { href: product.url, target: "_blank", rel: "noopener noreferrer" } : {})}
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-50px" }}
@@ -368,21 +355,25 @@ export default function App() {
                       <h3 className="text-xl font-medium text-white tracking-wide">
                         {product.name}
                       </h3>
-                      <ArrowUpRight className="w-5 h-5 text-white/30 group-hover:text-[#C5A059] group-hover:-translate-y-1 group-hover:translate-x-1 transition-all duration-500" strokeWidth={1.5} />
+                      {product.url && (
+                        <ArrowUpRight className="w-5 h-5 text-white/30 group-hover:text-[#C5A059] group-hover:-translate-y-1 group-hover:translate-x-1 transition-all duration-500" strokeWidth={1.5} />
+                      )}
                     </div>
                     
                     <p className="text-sm text-white/50 leading-relaxed font-light group-hover:text-white/70 transition-colors duration-500">
                       {product.description}
                     </p>
 
-                    <div className="mt-6 flex items-center text-xs font-mono text-[#C5A059] uppercase tracking-wider group-hover:text-white transition-colors duration-500">
-                      Visit Platform <ArrowUpRight className="ml-2 w-4 h-4" />
-                    </div>
+                    {product.url && (
+                      <div className="mt-6 flex items-center text-xs font-mono text-[#C5A059] uppercase tracking-wider group-hover:text-white transition-colors duration-500">
+                        Visit Platform <ArrowUpRight className="ml-2 w-4 h-4" />
+                      </div>
+                    )}
 
                     {/* Animated Underline */}
                     <div className="absolute bottom-0 left-0 w-0 h-[2px] bg-gradient-to-r from-[#C5A059] to-transparent group-hover:w-full transition-all duration-700 ease-out" />
                   </div>
-                </motion.a>
+                </CardWrapper>
               );
             })}
           </div>
@@ -895,12 +886,11 @@ export default function App() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-20">
                 {products.map((product, index) => {
                   const Icon = product.icon;
+                  const CardWrapper = product.url ? "a" : "div";
                   return (
-                    <a
+                    <CardWrapper
                       key={product.name}
-                      href={product.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      {...(product.url ? { href: product.url, target: "_blank", rel: "noopener noreferrer" } : {})}
                       className="group relative block p-8 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] hover:border-[#C5A059]/30 transition-all duration-500 overflow-hidden"
                     >
                       <div className="absolute inset-0 bg-gradient-to-b from-[#C5A059]/0 to-[#C5A059]/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -910,16 +900,20 @@ export default function App() {
                         </div>
                         <div className="flex justify-between items-center mb-4">
                           <h3 className="text-xl font-medium text-white tracking-wide">{product.name}</h3>
-                          <ArrowUpRight className="w-5 h-5 text-white/30 group-hover:text-[#C5A059] group-hover:-translate-y-1 group-hover:translate-x-1 transition-all duration-500" strokeWidth={1.5} />
+                          {product.url && (
+                            <ArrowUpRight className="w-5 h-5 text-white/30 group-hover:text-[#C5A059] group-hover:-translate-y-1 group-hover:translate-x-1 transition-all duration-500" strokeWidth={1.5} />
+                          )}
                         </div>
                         <p className="text-sm text-white/50 leading-relaxed font-light group-hover:text-white/70 transition-colors duration-500">
                           {product.description}
                         </p>
-                        <div className="mt-6 flex items-center text-xs font-mono text-[#C5A059] uppercase tracking-wider group-hover:text-white transition-colors duration-500">
-                          Visit Platform <ArrowUpRight className="ml-2 w-4 h-4" />
-                        </div>
+                        {product.url && (
+                          <div className="mt-6 flex items-center text-xs font-mono text-[#C5A059] uppercase tracking-wider group-hover:text-white transition-colors duration-500">
+                            Visit Platform <ArrowUpRight className="ml-2 w-4 h-4" />
+                          </div>
+                        )}
                       </div>
-                    </a>
+                    </CardWrapper>
                   );
                 })}
               </div>
