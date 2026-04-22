@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import Globe from 'react-globe.gl';
 import * as THREE from 'three';
 import { reviews } from '../data/reviews';
+import { useAppSounds } from '../hooks/useAppSounds';
 
 const locationCoordinates: Record<string, { lat: number; lng: number }> = {
   "London, UK 🇬🇧": { lat: 51.5074, lng: -0.1278 },
@@ -48,6 +49,7 @@ export default function InteractiveGlobe() {
   const [dimensions, setDimensions] = useState({ width: 800, height: 800 });
   const containerRef = useRef<HTMLDivElement>(null);
   const [hoveredPoint, setHoveredPoint] = useState<any>(null);
+  const { playHover } = useAppSounds();
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -191,7 +193,10 @@ export default function InteractiveGlobe() {
           pointColor={(d: any) => d === hoveredPoint ? '#FFFFFF' : d.color}
           pointRadius={(d: any) => d === hoveredPoint ? 1.5 : 0.8}
           pointsMerge={false}
-          onPointHover={(point) => setHoveredPoint(point)}
+          onPointHover={(point) => {
+            if (point && !hoveredPoint) playHover();
+            setHoveredPoint(point);
+          }}
         />
       </div>
       {hoveredPoint && createPortal(
@@ -204,7 +209,12 @@ export default function InteractiveGlobe() {
         >
           <div className="bg-[#0a0a0a]/95 border border-[#C5A059]/50 p-4 rounded-xl shadow-[0_0_30px_rgba(197,160,89,0.3)] backdrop-blur-md max-w-[250px] font-sans">
             <div className="text-[#C5A059] text-sm mb-1">
-              {"★".repeat(hoveredPoint.review.rating) + "☆".repeat(5 - hoveredPoint.review.rating)}
+              {Array.from({ length: 5 }).map((_, i) => {
+                const rating = hoveredPoint.review.rating;
+                if (i + 1 <= rating) return "★";
+                if (i < rating && i + 1 > rating) return "½";
+                return "☆";
+              }).join("")}
             </div>
             <div className="text-white text-xs mb-2 font-bold">
               {hoveredPoint.review.name} - {hoveredPoint.review.location}

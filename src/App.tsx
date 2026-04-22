@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowUpRight, Layers, Activity, Globe, ShoppingBag, Star, ArrowLeft, Mail, X, Lock, Unlock, Plus, Trash2 } from "lucide-react";
+import { ArrowUpRight, Layers, Activity, Globe, ShoppingBag, Star, StarHalf, ArrowLeft, Mail, X, Lock, Unlock, Plus, Trash2, Package, ExternalLink, ChevronRight, Download, Search, Filter } from "lucide-react";
 import { reviews } from "./data/reviews";
 import InteractiveGlobe from "./components/InteractiveGlobe";
 import { db, auth, loginWithGoogle, logout } from "./firebase";
 import { collection, query, orderBy, onSnapshot, addDoc, deleteDoc, doc, serverTimestamp, Timestamp } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
+import { useAppSounds } from "./hooks/useAppSounds";
 
 interface NewsPost {
   id: string;
@@ -17,21 +18,29 @@ interface NewsPost {
 
 const products = [
   {
-    name: "Elite Workout",
-    url: "https://calworkout-production.up.railway.app",
-    description: "A calisthenics training system for building strength, structure, and discipline.",
-    icon: Activity,
-  },
-  {
-    name: "Universo Store",
-    url: "https://payhip.com/UNIVERSOSTORE",
-    description: "A digital storefront providing premium tools, presets, and assets for creators and video editors.",
+    name: "Aurexis Market",
+    description: "Your best choice for affordable software, premium presets, and high-quality creative assets.",
     icon: ShoppingBag,
+    isStore: true
   },
 ];
 
+const storeProducts = [
+  { title: "🎬 Premium Motion Presets Pack", url: "https://payhip.com/b/xamP6", type: "Presets", category: "Motion", description: "Professional motion graphics presets for high-end video production.", price: "20.00" },
+  { title: "🎧 Premium Audio Presets Pack", url: "https://payhip.com/b/kOXnN", type: "Presets", category: "Audio", description: "Studio-quality audio effects and mastering presets for creators.", price: "15.00" },
+  { title: "Short-Form Video Editing Preset Pack", url: "https://payhip.com/b/ovMXb", type: "Presets", category: "Video", description: "Optimized presets specifically for TikTok, Reels, and Shorts.", price: "25.00" },
+  { title: "Glitch Pack: Effects & Transitions", url: "https://payhip.com/b/QP0zA", type: "Presets", category: "VFX", description: "Modern glitch effects and seamless transitions for dynamic editing.", price: "12.00" },
+  { title: "Cinematic LUT Pack", url: "https://payhip.com/b/R5Mau", type: "LUTs", category: "Color", description: "Professional color grading LUTs for a high-end cinematic look.", price: "10.00" },
+  { title: "“50 Digital Products You Can Sell Online”", url: "https://payhip.com/b/l7mkK", type: "Guide", category: "Education", description: "A comprehensive guide to starting your digital product business.", price: "0.00" },
+  { title: "virtual piano", url: "https://payhip.com/b/xLibX", type: "Instrument", category: "Audio", description: "A high-quality virtual piano instrument for music production.", price: "0.00" },
+  { title: "Camera Shake presets", url: "https://payhip.com/b/aktIe", type: "Presets", category: "Motion", description: "Realistic camera movement presets to add life to your shots.", price: "5.00" },
+  { title: "Fish Eye Lense Effect", url: "https://payhip.com/b/VJ0aM", type: "Preset", category: "VFX", description: "Classic ultra-wide lens effect for unique visual styling.", price: "0.00" },
+  { title: "radial blur", url: "https://payhip.com/b/qGiQ2", type: "Preset", category: "VFX", description: "Dynamic radial blur effects for motion and focus.", price: "0.00" },
+  { title: "miss nagatoro wallpaper", url: "https://payhip.com/b/7mhGu", type: "Wallpaper", category: "Art", description: "Exclusive high-resolution digital art wallpaper.", price: "0.00" },
+];
+
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<'home' | 'news'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'news' | 'store'>('home');
   const [introComplete, setIntroComplete] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [allReviews, setAllReviews] = useState(reviews);
@@ -39,6 +48,21 @@ export default function App() {
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [contactForm, setContactForm] = useState({ name: "", email: "", message: "" });
   const [showEcosystemModal, setShowEcosystemModal] = useState(false);
+  const [storeSearch, setStoreSearch] = useState("");
+  const [storeCategory, setStoreCategory] = useState("All");
+  const { playHover, playSelect, playAction, playTransition, playSuccess } = useAppSounds();
+
+  const handlePageChange = (page: 'home' | 'news' | 'store') => {
+    playTransition();
+    setCurrentPage(page);
+  };
+
+  const filteredStoreProducts = storeProducts.filter(product => {
+    const matchesSearch = product.title.toLowerCase().includes(storeSearch.toLowerCase()) || 
+                         product.description.toLowerCase().includes(storeSearch.toLowerCase());
+    const matchesCategory = storeCategory === "All" || product.category === storeCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   // Firebase Auth & News State
   const [isAdmin, setIsAdmin] = useState(false);
@@ -225,27 +249,36 @@ export default function App() {
         transition={{ duration: 1.5, ease: "easeOut" }}
         className="w-full px-6 py-8 md:px-12 lg:px-24 flex justify-between items-center relative z-10"
       >
-        <motion.button 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: introComplete ? 1 : 0 }}
-          transition={{ duration: 0.8, ease: "easeOut", delay: introComplete ? 0.2 : 0 }}
-          onClick={() => { setCurrentPage('home'); setShowAllReviews(false); window.scrollTo(0, 0); }}
-          className="text-xs tracking-[0.2em] font-medium uppercase text-white/50 hover:text-white transition-colors"
-        >
-          Aurexis
-        </motion.button>
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: introComplete ? 1 : 0 }}
-          transition={{ duration: 0.8, ease: "easeOut", delay: introComplete ? 0.3 : 0 }}
-          className="flex items-center gap-8"
-        >
-          <button 
-            onClick={() => { setCurrentPage('news'); window.scrollTo(0, 0); }}
-            className={`text-xs font-mono uppercase tracking-widest transition-colors ${currentPage === 'news' ? 'text-[#C5A059]' : 'text-white/30 hover:text-white/70'}`}
+          <motion.button 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: introComplete ? 1 : 0 }}
+            transition={{ duration: 0.8, ease: "easeOut", delay: introComplete ? 0.2 : 0 }}
+            onClick={() => { handlePageChange('home'); setShowAllReviews(false); window.scrollTo(0, 0); }}
+            onMouseEnter={() => playHover()}
+            className="text-xs tracking-[0.2em] font-medium uppercase text-white/50 hover:text-white transition-colors"
           >
-            What's New
-          </button>
+            Aurexis
+          </motion.button>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: introComplete ? 1 : 0 }}
+            transition={{ duration: 0.8, ease: "easeOut", delay: introComplete ? 0.3 : 0 }}
+            className="flex items-center gap-8"
+          >
+            <button 
+              onClick={() => { handlePageChange('news'); window.scrollTo(0, 0); }}
+              onMouseEnter={() => playHover()}
+              className={`text-xs font-mono uppercase tracking-widest transition-colors ${currentPage === 'news' ? 'text-[#C5A059]' : 'text-white/30 hover:text-white/70'}`}
+            >
+              What's New
+            </button>
+            <button 
+              onClick={() => { handlePageChange('store'); window.scrollTo(0, 0); }}
+              onMouseEnter={() => playHover()}
+              className={`text-xs font-mono uppercase tracking-widest transition-colors ${currentPage === 'store' ? 'text-[#C5A059]' : 'text-white/30 hover:text-white/70'}`}
+            >
+              Market
+            </button>
           <div className="text-xs font-mono text-white/30 uppercase tracking-widest hidden sm:block">
             Index 01
           </div>
@@ -253,7 +286,7 @@ export default function App() {
       </motion.nav>
 
       <main className="w-full max-w-7xl mx-auto px-6 md:px-12 lg:px-24 relative z-10">
-        {currentPage === 'home' ? (
+        {currentPage === 'home' && (
           <>
             {!showAllReviews && (
               <>
@@ -301,7 +334,8 @@ export default function App() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1.5, ease: "easeOut", delay: 1.6 }}
-              onClick={() => setShowEcosystemModal(true)}
+              onClick={() => { playAction(); setShowEcosystemModal(true); }}
+              onMouseEnter={() => playHover()}
               className="mt-10 px-8 py-4 bg-[#C5A059] text-black font-medium text-sm uppercase tracking-widest rounded-full hover:bg-[#d4b26f] transition-all hover:scale-105 pointer-events-auto shadow-[0_0_20px_rgba(197,160,89,0.2)]"
             >
               Explore Ecosystem
@@ -332,16 +366,20 @@ export default function App() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {products.map((product, index) => {
               const Icon = product.icon;
-              const CardWrapper = product.url ? motion.a : motion.div;
+              const isExternal = !!product.url;
+              const CardWrapper = isExternal ? motion.a : motion.div;
+              
               return (
                 <CardWrapper
                   key={product.name}
-                  {...(product.url ? { href: product.url, target: "_blank", rel: "noopener noreferrer" } : {})}
+                  {...(isExternal ? { href: product.url, target: "_blank", rel: "noopener noreferrer" } : {})}
+                  {...(product.isStore ? { onClick: () => { handlePageChange('store'); window.scrollTo(0, 0); } } : {})}
+                  onMouseEnter={() => playHover()}
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-50px" }}
                   transition={{ duration: 0.6, delay: index * 0.15 }}
-                  className="group relative block p-8 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] hover:border-[#C5A059]/30 transition-all duration-500 overflow-hidden"
+                  className={`group relative block p-8 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] hover:border-[#C5A059]/30 transition-all duration-500 overflow-hidden ${product.isStore ? 'cursor-pointer' : ''}`}
                 >
                   {/* Hover Glow */}
                   <div className="absolute inset-0 bg-gradient-to-b from-[#C5A059]/0 to-[#C5A059]/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -367,6 +405,12 @@ export default function App() {
                     {product.url && (
                       <div className="mt-6 flex items-center text-xs font-mono text-[#C5A059] uppercase tracking-wider group-hover:text-white transition-colors duration-500">
                         Visit Platform <ArrowUpRight className="ml-2 w-4 h-4" />
+                      </div>
+                    )}
+
+                    {product.isStore && (
+                      <div className="mt-6 flex items-center text-xs font-mono text-[#C5A059] uppercase tracking-wider group-hover:text-white transition-colors duration-500">
+                        Open Store <ChevronRight className="ml-2 w-4 h-4" />
                       </div>
                     )}
 
@@ -471,6 +515,7 @@ export default function App() {
                     e.preventDefault();
                     if (newReview.name && newReview.text) {
                       setAllReviews([newReview, ...allReviews]);
+                      playSuccess();
                       setReviewSubmitted(true);
                     }
                   }} className="space-y-4">
@@ -546,12 +591,16 @@ export default function App() {
                 className="break-inside-avoid inline-block w-full bg-white/[0.02] border border-white/[0.05] p-8 rounded-2xl hover:bg-white/[0.04] hover:border-[#C5A059]/30 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-[0_10px_40px_rgba(197,160,89,0.12)] transition-all duration-500"
               >
                 <div className="flex gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star 
-                      key={i} 
-                      className={`w-4 h-4 ${i < review.rating ? "fill-[#C5A059] text-[#C5A059]" : "text-white/10"}`} 
-                    />
-                  ))}
+                  {[...Array(5)].map((_, i) => {
+                    const rating = review.rating;
+                    if (i + 1 <= rating) {
+                      return <Star key={i} className="w-4 h-4 fill-[#C5A059] text-[#C5A059]" />;
+                    } else if (i < rating && i + 1 > rating) {
+                      return <StarHalf key={i} className="w-4 h-4 fill-[#C5A059] text-[#C5A059]" />;
+                    } else {
+                      return <Star key={i} className="w-4 h-4 text-white/10" />;
+                    }
+                  })}
                 </div>
                 <p className="text-white/70 font-light leading-relaxed mb-6 text-sm">
                   "{review.text}"
@@ -669,7 +718,163 @@ export default function App() {
           </div>
         </motion.section>
           </>
-        ) : (
+        )}
+
+        {/* Store Detail Page */}
+        {currentPage === 'store' && (
+          <motion.section
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="py-12 md:py-24 min-h-[70vh] relative z-10"
+          >
+            <button 
+              onClick={() => { setCurrentPage('home'); window.scrollTo(0, 0); }}
+              className="mb-12 flex items-center gap-2 text-white/50 hover:text-[#C5A059] transition-colors font-mono text-sm uppercase tracking-widest group"
+            >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Home
+            </button>
+
+            <div className="flex flex-col lg:flex-row justify-between items-start gap-8 mb-16">
+              <div className="max-w-2xl">
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="p-3 rounded-2xl bg-[#C5A059]/10 border border-[#C5A059]/30">
+                    <ShoppingBag className="w-6 h-6 text-[#C5A059]" />
+                  </div>
+                  <h2 className="text-xs font-mono text-[#C5A059] uppercase tracking-[0.2em]">
+                    Aurexis Market
+                  </h2>
+                </div>
+                <h1 className="text-4xl md:text-6xl font-light text-white mb-6 leading-tight">
+                  Your best choice for <span className="text-[#C5A059]">affordable software products.</span>
+                </h1>
+                <p className="text-lg text-white/60 font-light leading-relaxed">
+                  The primary destination for creators seeking high-quality tools at an accessible price. Professional assets, presets, and software tools designed to fit your budget.
+                </p>
+              </div>
+              
+              <div className="w-full lg:w-auto space-y-6">
+                <div className="flex flex-wrap gap-2">
+                  {['All', 'Motion', 'Audio', 'Video', 'VFX', 'Color', 'Education', 'Art'].map(cat => (
+                    <button 
+                      key={cat}
+                      onClick={() => { playSelect(); setStoreCategory(cat); }}
+                      onMouseEnter={() => playHover()}
+                      className={`px-4 py-2 rounded-full border transition-all text-[10px] font-mono uppercase tracking-widest ${
+                        storeCategory === cat 
+                        ? 'bg-[#C5A059] border-[#C5A059] text-black shadow-[0_0_15px_rgba(197,160,89,0.3)]' 
+                        : 'border-white/10 bg-white/[0.02] text-white/40 hover:border-white/30 hover:text-white'
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="relative group">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#C5A059] transition-colors" />
+                  <input 
+                    type="text"
+                    placeholder="Search products..."
+                    value={storeSearch}
+                    onChange={(e) => setStoreSearch(e.target.value)}
+                    className="w-full lg:w-[400px] bg-white/[0.02] border border-white/10 rounded-2xl pl-12 pr-6 py-4 text-white placeholder:text-white/20 focus:outline-none focus:border-[#C5A059]/50 transition-all focus:bg-white/[0.04]"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {filteredStoreProducts.length === 0 ? (
+              <div className="py-24 text-center border border-dashed border-white/10 rounded-3xl">
+                <p className="text-white/30 font-light italic">No products found matching your search.</p>
+                <button 
+                  onClick={() => { setStoreSearch(""); setStoreCategory("All"); }}
+                  className="mt-4 text-[#C5A059] text-sm hover:underline"
+                >
+                  Clear all filters
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredStoreProducts.map((product, index) => (
+                  <motion.a
+                    key={product.title}
+                    href={product.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => playAction()}
+                    onMouseEnter={() => playHover()}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: index * 0.05 }}
+                    className="group relative block bg-[#111] border border-white/10 rounded-2xl p-6 hover:border-[#C5A059]/50 hover:shadow-[0_20px_50px_rgba(197,160,89,0.1)] transition-all duration-500 overflow-hidden"
+                  >
+                    {/* Subtle Background Icon */}
+                    <div className="absolute -top-4 -right-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-700">
+                      <Package className="w-32 h-32 text-white" />
+                    </div>
+
+                    <div className="relative z-10">
+                      <div className="flex justify-between items-start mb-6">
+                        <div className="flex flex-col gap-2">
+                          <span className="px-2 py-1 rounded border border-[#C5A059]/30 text-[#C5A059] text-[9px] font-mono uppercase tracking-wider bg-[#C5A059]/5 inline-block w-fit">
+                            {product.category}
+                          </span>
+                          <span className="text-[#C5A059] font-mono text-lg font-medium">
+                            {product.price === "0.00" ? "FREE" : `$${product.price}`}
+                          </span>
+                        </div>
+                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-[#C5A059] transition-all duration-500 group-hover:shadow-[0_0_20px_rgba(197,160,89,0.3)]">
+                          <Download className="w-5 h-5 text-white/40 group-hover:text-black transition-colors" />
+                        </div>
+                      </div>
+
+                      <h3 className="text-lg font-medium text-white mb-3 group-hover:text-[#C5A059] transition-colors line-clamp-2 leading-tight">
+                        {product.title}
+                      </h3>
+
+                      <p className="text-xs text-white/50 leading-relaxed font-light mb-8 line-clamp-2 h-8 group-hover:text-white/70 transition-colors">
+                        {product.description}
+                      </p>
+
+                      <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                        <span className="text-[10px] font-mono text-white/30 uppercase tracking-widest">
+                          {product.type}
+                        </span>
+                        <div className="flex items-center gap-1 text-[10px] font-mono text-[#C5A059] uppercase tracking-widest group-hover:gap-3 transition-all whitespace-nowrap">
+                          {product.price === "0.00" ? "Download Now" : "Get It Now"} <ChevronRight className="w-3 h-3" />
+                        </div>
+                      </div>
+                    </div>
+                  </motion.a>
+                ))}
+              </div>
+            )}
+            
+            {/* Store Footer CTA */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              className="mt-24 p-12 rounded-3xl bg-gradient-to-br from-white/[0.03] to-transparent border border-white/10 text-center relative overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#C5A059]/50 to-transparent" />
+              <h3 className="text-2xl font-light text-white mb-4">Want to see more?</h3>
+              <p className="text-white/50 mb-8 max-w-lg mx-auto">Explore the full Universo Store catalog on Payhip for even more presets and digital tools.</p>
+              <a 
+                href="https://payhip.com/UNIVERSOSTORE" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-8 py-3 bg-[#C5A059] text-black font-medium rounded-full hover:bg-[#d4b26f] transition-all hover:scale-105 active:scale-95"
+              >
+                Visit Full Store <ExternalLink className="w-4 h-4" />
+              </a>
+            </motion.div>
+          </motion.section>
+        )}
+
+        {/* News Detail Page */}
+        {currentPage === 'news' && (
           <motion.section 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
